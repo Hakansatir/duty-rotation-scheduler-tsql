@@ -1,0 +1,7 @@
+# Normalise line endings across platforms.
+# Everything is stored with LF in the repository.
+* text=auto eol=lf
+
+# SQL scripts run inside a Linux container: LF is mandatory.
+*.sql text eol=lf
+*.yml text eol=lf
