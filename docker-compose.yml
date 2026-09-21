@@ -9,7 +9,11 @@ services:
     ports:
       - "1433:1433"
     volumes:
+      # Named volume: the database itself must survive container removal.
       - sqldata:/var/opt/mssql
+      # Bind mounts: SQL scripts are edited on the host and read inside the container.
+      - ./sql:/sql:ro
+      - ./tests:/tests:ro
 
 volumes:
   sqldata:
