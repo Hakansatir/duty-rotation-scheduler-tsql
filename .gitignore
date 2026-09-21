@@ -1,0 +1,22 @@
+# --- Secrets / environment ---
+# The real .env holds the SA password and must never be committed.
+.env
+*.env
+!.env.example
+
+# --- SQL Server data files ---
+*.mdf
+*.ldf
+*.ndf
+*.bak
+backups/
+
+# --- Editor / OS ---
+.vscode/
+*.code-workspace
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# --- Personal planning notes (Turkish, not part of the public project) ---
+PROJE-PLANI.md
