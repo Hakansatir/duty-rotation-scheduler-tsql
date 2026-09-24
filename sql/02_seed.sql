@@ -58,7 +58,7 @@ GO
 INSERT INTO dbo.LeavePeriods (EmployeeId, StartDate, EndDate) VALUES
     (3,  '2026-10-03', '2026-10-03'),   -- Carla: one day
     (5,  '2026-10-12', '2026-10-20'),   -- Elena: nine days
-    -- Hugo and Irana's leave overlaps for 11 days (one full cycle).
+    -- Hugo and Irina's leave overlaps for 11 days (one full cycle).
     -- This guarantees that Hugo's turn comes while both are on leave (BR-5).
     (8,  '2026-11-05', '2026-11-16'),   -- Hugo
     (9,  '2026-11-06', '2026-11-17');   -- Irina: overlaps with Hugo
