@@ -16,23 +16,30 @@ BEGIN
     IF @EmployeeCount = 0
         THROW 50002, 'There are no employees to build a rotation from.', 1;
 
-    /* How many days does @Months cover? Month lengths differ, so the end
-       date is computed first and the days are counted between the two. */
-    DECLARE @DayCount INT = DATEDIFF(DAY, @StartDate, DATEADD(MONTH, @Months, @StartDate));
+    DECLARE @EndDate     DATE = DATEADD(MONTH, @Months, @StartDate);
+    DECLARE @CurrentDate DATE = @StartDate;
+    DECLARE @Pointer     INT  = 1;   -- RotationOrder of the next candidate
+    DECLARE @EmployeeId  INT;
 
     /* Regenerating must not collide with rows that are already there. */
     DELETE FROM dbo.DutyAssignments WHERE DutyDate >= @StartDate;
 
-    WITH Days AS (
-        SELECT TOP (@DayCount)
-               ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) - 1 AS DayOffset
-        FROM sys.all_objects
-    )
-    INSERT INTO dbo.DutyAssignments (DutyDate, EmployeeId)
-    SELECT DATEADD(DAY, d.DayOffset, @StartDate),
-           e.EmployeeId
-    FROM Days AS d
-    JOIN dbo.Employees AS e
-        ON e.RotationOrder = (d.DayOffset % @EmployeeCount) + 1;
+    /* Days are assigned one by one: leave shifts the rotation (BR-4), so each
+       day depends on who was on duty the day before. That makes this step
+       inherently sequential, hence a loop instead of a set-based INSERT. */
+    WHILE @CurrentDate < @EndDate
+    BEGIN
+        SET @EmployeeId = dbo.fn_NextAvailableEmployee(@Pointer, @CurrentDate) ;
+
+        IF @EmployeeId IS NULL
+            THROW 50003, 'No employee is available on at least one day (BR-8).', 1;
+
+        INSERT INTO dbo.DutyAssignments (DutyDate, EmployeeId)
+        VALUES (@CurrentDate, @EmployeeId);
+
+        SET @Pointer = (SELECT RotationOrder FROM dbo.Employees WHERE EmployeeId = @EmployeeId) + 1;
+
+        SET @CurrentDate = DATEADD(DAY, 1, @CurrentDate);
+    END
 END
 GO
