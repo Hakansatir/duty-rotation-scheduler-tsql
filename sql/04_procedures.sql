@@ -66,3 +66,36 @@ BEGIN
     EXEC dbo.usp_AssignDuties @FromDate = @StartDate, @ToDate = @EndDate;
 END
 GO
+
+/* ------------------------------------------------------------------
+   usp_AddLeave - records a leave and re-plans from its first day (BR-7).
+   Recording the leave and re-planning are one unit of work: either both
+   happen or neither does, so a failed re-plan never leaves a half plan (BR-8).
+   ------------------------------------------------------------------ */
+CREATE OR ALTER PROCEDURE dbo.usp_AddLeave
+    @EmployeeId INT,
+    @StartDate  DATE,
+    @EndDate    DATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+
+    BEGIN TRANSACTION;
+
+    INSERT INTO dbo.LeavePeriods (EmployeeId, StartDate, EndDate)
+    VALUES (@EmployeeId, @StartDate, @EndDate);
+
+    DECLARE @PlanStart DATE = (SELECT MIN(DutyDate) FROM dbo.DutyAssignments);
+    DECLARE @PlanEnd   DATE = DATEADD(DAY, 1, (SELECT MAX(DutyDate) FROM dbo.DutyAssignments));
+
+    /* Only the part of the plan from the leave's first day onwards changes.
+       A leave that starts before the plan re-plans from the plan start. */
+    DECLARE @FromDate DATE = CASE WHEN @StartDate < @PlanStart THEN @PlanStart ELSE @StartDate END;
+
+    IF @FromDate < @PlanEnd AND @PlanEnd IS NOT NULL
+        EXEC dbo.usp_AssignDuties @FromDate = @FromDate, @ToDate = @PlanEnd;
+
+    COMMIT TRANSACTION;
+END
+GO
