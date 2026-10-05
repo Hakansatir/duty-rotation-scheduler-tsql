@@ -18,7 +18,8 @@ BEGIN
 
     DECLARE @EndDate     DATE = DATEADD(MONTH, @Months, @StartDate);
     DECLARE @CurrentDate DATE = @StartDate;
-    DECLARE @Pointer     INT  = 1;   -- RotationOrder of the next candidate
+    DECLARE @PreviousEmployeeId INT = (SELECT EmployeeId FROM dbo.DutyAssignments WHERE DutyDate = DATEADD(DAY, -1, @StartDate));
+    DECLARE @Pointer INT = ISNULL((SELECT RotationOrder FROM dbo.Employees WHERE EmployeeId = @PreviousEmployeeId) + 1, 1);
     DECLARE @EmployeeId  INT;
 
     /* Regenerating must not collide with rows that are already there. */
