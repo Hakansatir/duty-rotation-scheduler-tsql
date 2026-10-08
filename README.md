@@ -12,8 +12,8 @@ Every day, weekends included, one person checked the systems to catch anomalies 
 raised a ticket when something went wrong. The hard part was planning the shifts by hand
 every week: whenever someone went on leave, the order shifted and the plan had to be
 fixed manually. With the Duty Rotation Scheduler, this is no longer manual. Once you run
-a command, it builds a 12-month schedule, and whenever someone goes on leave, the
-schedule is updated automatically.
+a command, it builds a 12-month schedule, and when someone takes leave, a single procedure
+call re-plans the schedule from that day on.
 
 ## Business rules
 
