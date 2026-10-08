@@ -4,7 +4,7 @@
 
     Run inside the container:
         docker exec duty-rotation-sql bash -c '/opt/mssql-tools18/bin/sqlcmd
-            -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -b -i, /sql/run_all.sql'
+            -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -b -i /sql/run_all.sql'
     
     Warning: all tables are dropped and recreated, existing data is lost.
 */
