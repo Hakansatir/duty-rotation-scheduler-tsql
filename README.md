@@ -180,8 +180,10 @@ PASS BR-7: days before the leave are unchanged.
 - **One engine, two entry points.** `usp_GenerateRotation` (months) and `usp_AddLeave` (from the
   leave's first day to the end of the plan) both call `usp_AssignDuties`, so the rules live in
   one place.
-- **Transactions.** `usp_AddLeave` records the leave and re-plans in one transaction with
-  `SET XACT_ABORT ON`: if re-planning fails, the leave is not saved either (BR-8).
+- **Transactions.** Both public procedures run their changes in one transaction with
+  `SET XACT_ABORT ON` (BR-8). If `usp_GenerateRotation` fails halfway, the previous plan is kept;
+  if `usp_AddLeave` cannot re-plan, the leave is not saved either. Validation runs before the
+  transaction starts, so the transaction only covers the statements that change data.
 - **Functions return `NULL`, procedures raise errors.** SQL Server does not allow `THROW` inside a
   function, so `fn_NextAvailableEmployee` returns `NULL` when nobody is available and the caller
   raises the error.
@@ -193,8 +195,6 @@ PASS BR-7: days before the leave are unchanged.
 
 ## Known limitations
 
-- `usp_GenerateRotation` does not yet run inside its own transaction, so a failure in the middle
-  of a new plan (BR-8) could leave a partial plan. `usp_AddLeave` is already protected.
 - Out of scope for v1.0: public holiday calendar, multiple teams, a UI or Power BI report.
 
 ## Repository layout

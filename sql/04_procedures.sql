@@ -52,6 +52,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_GenerateRotation
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET XACT_ABORT ON;
 
     IF @Months < 1 OR @Months > 12
         THROW 50001, 'Months must be between 1 and 12.', 1;
@@ -63,7 +64,9 @@ BEGIN
 
     DECLARE @EndDate DATE = DATEADD(MONTH, @Months, @StartDate);
 
+    BEGIN TRANSACTION;
     EXEC dbo.usp_AssignDuties @FromDate = @StartDate, @ToDate = @EndDate;
+    COMMIT TRANSACTION;
 END
 GO
 
